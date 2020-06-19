@@ -26,9 +26,9 @@ func main() {
 	    os.Exit(2)
 	}
 
-        http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-            http.ServeFile(w, r, dir)
-        })
+        http.Handle("/", http.FileServer(http.Dir(dir)))
+    	http.HandleFunc("/favicon.ico", FavSrvHandler)
+
         http.HandleFunc("/cpu", SrvCpu )
 	http.HandleFunc("/disk", SrvDisk )
 	http.HandleFunc("/docker", SrvDocker )
@@ -41,7 +41,7 @@ func main() {
 	    w.Header().Set("Content-Type", "application/json; charset=UTF-8")
             fmt.Fprintf(w, "[\"/cpu\",\"/disk\",\"/docker\",\"/host\",\"/load\",\"/mem\",\"/net\",\"/process\",\"/usage\"]")
 	} )
-		
+	
 	log.Println("Starting webserver on port", port, "to directory", dir)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), nil))
 
