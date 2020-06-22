@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <!--<link rel="stylesheet" type="text/css" title="Original" href="bootstrap.min.css">-->
+    <link rel="stylesheet" type="text/css" title="Darkly" href="css/Darkly/bootstrap.min.css">
+    <title>Server info</title>
+  </head>
+  <script type="text/javascript">
+var host = {}
+var cpu = {}
+var planning = true ;
+var delay = 10 ;
+var refreshTimeOut = null ;
+function Timeout(fn, interval) {
+    var id = setTimeout(fn, interval);
+    this.id = id ;
+    this.cleared = false;
+    this.clear = function () {
+        this.cleared = true;
+        clearTimeout(id);
+    };
+}
+function setDelay(d) {
+	delay = d ;
+}
+function refresh_host() {
+	fetch("/host")
+	.then((resp) => resp.json())
+	.then(function(res) {
+		host = res.host ;
+		document.getElementById("info_hostname").innerHTML = host.info.hostname ;
+		document.getElementById("info_archi").innerHTML = host.info.kernelArch ; 
+		document.getElementById("info_os").innerHTML = host.info.platform ;
+		document.getElementById("info_osversion").innerHTML = host.info.platformVersion ;
+	})
+	.catch(function(error) {
+		console.log(error);
+	})
+	; 
+}
+function refresh_cpu() {
+	fetch("/cpu")
+	.then((resp) => resp.json())
+	.then(function(res) {
+		cpu = res.cpu ;
+		document.getElementById("info_cpucpus").innerHTML = cpu.count ;
+		document.getElementById("info_cpuvendorid").innerHTML = cpu.info[0].vendorId ;
+		document.getElementById("info_cpumodel").innerHTML = cpu.info[0].model+' ('+cpu.info[0].modelName+')' ;	
+		
+		//document.getElementById("info_cpuusage").innerHTML = '<h1 style="color: '+getGreenToRed(100-data.cpuusage)+';">'+toFixed(data.cpuusage,2)+' %</h1>' ;
+		//document.getElementById("info_memusage").innerHTML = '<h1 style="color: '+getGreenToRed(100-data.memusage)+';">'+toFixed(data.memusage,2)+' %</h1>' ;
+	})
+	.catch(function(error) {
+		console.log(error);
+	})
+	; 
+}
+
+function refresh() {
+	if( !planning ) { return ; }
+	document.getElementById("btnStop").style.display="none" ;
+	document.getElementById("spinner").style.display="inline-block" ;
+	fetch(url)
+	.then((resp) => resp.json())
+	.then(function(res) {
+		data = res ;
+		if( planning ) {
+			if( refreshTimeOut!=null ) { refreshTimeOut.clear() ; refreshTimeOut = null ; }
+			refreshTimeOut = new Timeout(refresh, delay*1000) ;
+		}
+		document.getElementById("spinner").style.display="none" ;
+		document.getElementById("btnStop").style.display="inline-block" ;
+	})
+	.catch(function(error) {
+		console.log(error);
+		document.getElementById("spinner").style.display="none" ;
+		document.getElementById("btnStop").style.display="inline-block" ;
+	})
+	; 
+}
+function Stop() {
+	document.getElementById("btnStop").disabled="disabled" ;
+	document.getElementById("btnStop").style.display="none" ;
+	if( refreshTimeOut != null ) { refreshTimeOut.clear() ; refreshTimeOut = null ; }
+	planning = false ;
+	document.getElementById("btnStart").disabled=null;
+	document.getElementById("btnStart").style.display="inline-block" ;
+}
+function Start() {
+	document.getElementById("btnStart").disabled="disabled" ;
+	document.getElementById("btnStart").style.display="none" ;
+	document.getElementById("btnStop").disabled=null ;
+	document.getElementById("btnStop").style.display="inline-block" ;
+	planning = true ;
+	//refresh() ;
+}
+function init() {
+	document.getElementById("delay").value = delay ;
+	refresh_host() ;
+	refresh_cpu() ;
+}
+function toFixed(value, precision) {
+    var power = Math.pow(10, precision || 0);
+    return String(Math.round(value * power) / power);
+}
+function getGreenToRed(percent){
+	r = percent<50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
+	g = percent>50 ? 255 : Math.floor((percent*2)*255/100);
+	return 'rgb('+r+','+g+',0)';
+}
+function do_cpu() {
+	d = document.getElementById("cpuTable") ;
+	nb = Object.keys(data.cpustats).length - 1 ;
+	txt  = '<h2>CPU utilisation</h2>' ;
+	txt += '<table class="table table-sm table-hover table-bordered"><thead class="thead-light">' ;
+        txt += '<tr><th scope="col">CPU</th><th scope="col" style="color: green;">User%</th><th scope="col" style="color: red;">Sys%</th><th scope="col" style="color: blue;">Wait%</th><th scope="col">Idle</th></tr>' ;
+	txt += '</thead><tbody>' ;
+	if( nb>0 )
+	for( i=0 ; i<nb ; i++ ) {
+		txt += '<tr><th>'+i+'</th>' ;
+		txt += '<td>'+toFixed(data.cpustats['cpu'+i].user,2)+'</td>' ;
+		txt += '<td>'+toFixed(data.cpustats['cpu'+i].sys,2)+'</td>' ;
+		txt += '<td>'+toFixed(data.cpustats['cpu'+i].wait,2)+'</td>' ;
+		txt += '<td>'+toFixed(data.cpustats['cpu'+i].idle,2)+'</td>' ;
+		txt += '</tr>' ;
+	}
+	txt += '<tr class="table-warning"><th>Avg</th><td>'+toFixed(data.cpustats['cpu'].user,2)+'</td><td>'+toFixed(data.cpustats['cpu'].sys,2)+'</td><td>'+toFixed(data.cpustats['cpu'].wait,2)+'</td><td>'+toFixed(data.cpustats['cpu'].idle,2)+'</td></tr>' ;
+	txt += '</tbody></table>' ;
+	
+	txt += '<hr>' ;
+	
+	txt += '<table class="table table-sm"><tbody>' ;
+	for( i=0 ; i<nb ; i++ ) {
+		txt += '<tr><th>'+i+'</th>' ;
+	txt += '<td>' ;
+	txt += '<div class="progress">' ;
+	txt += '<div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: '+data.cpustats['cpu'+1].user+'%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>' ;
+	txt += '<div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: '+data.cpustats['cpu'+1].sys+'%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>' ;
+	txt += '<div class="progress-bar progress-bar-striped" role="progressbar" style="width: '+data.cpustats['cpu'+1].wait+'%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>' ;
+	txt += '</div>' ;
+	txt += '</td>' ;
+	txt += '</tr>' ;
+	}
+	txt += '<tr class="table-warning"><th style="width: 20%;">Avg</th>' ;
+	txt += '<td>' ;
+	txt += '<div class="progress">' ;
+	txt += '<div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: '+data.cpustats['cpu'].user+'%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>' ;
+	txt += '<div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: '+data.cpustats['cpu'].sys+'%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>' ;
+	txt += '<div class="progress-bar progress-bar-striped" role="progressbar" style="width: '+data.cpustats['cpu'].wait+'%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>' ;
+	txt += '</div>' ;
+	txt += '</td>' ;
+	txt += '</tr>' ;
+	txt += '</tbody></table>' ;
+	
+	d.innerHTML = txt ;
+}
+function do_mem() {
+	d = document.getElementById("memTable") ;
+	txt  = '<h2>Memory and Swap</h2>' ;
+	txt += '<table class="table table-sm"><thead class="thead-light">' ;
+        txt += '<tr>' ;
+	txt += '<th scope="col" style="color: red;">PageSize: '+data.memstats.pagesize+'KB</th>' ;
+	txt += '<th scope="col" style="color: green;">RAM-Memory</th>' ;
+	txt += '<th scope="col" style="color: orange;">Swap-Space</th>' ;
+	txt += '<th scope="col" style="color: blue;">High-Memory</th>' ;
+	txt += '<th scope="col" style="color: lightblue;">Low-Memory</th>' ;
+	txt += '</tr>' ;
+	txt += '</head><tbody>' ;
+	txt += '<tr><th>Total (MB)</th><td>'+toFixed(data.memstats.memtotal,2)+'</td><td>'+toFixed(data.memstats.swaptotal,2)+'</td><td>-</td><td>-</td></tr>' ;
+	txt += '<tr><th>Free (MB)</th><td>'+toFixed(data.memstats.memfree,2)+'</td><td>'+toFixed(data.memstats.swapfree,2)+'</td><td>-</td><td>-</td></tr>' ;
+	pfmem = 100*data.memstats.memfree/data.memstats.memtotal ;
+	pfswap = 100*data.memstats.swapfree/data.memstats.swaptotal ;
+	txt += '<tr style="background-color: gray;"><th>Free Percent</th><td><span style="color: '+getGreenToRed(100-pfmem)+';">'+toFixed(pfmem,2)+' %</span></td><td><span style="color: '+getGreenToRed(pfswap)+';">'+toFixed(pfswap,2)+' %</span></td><td>-</td><td>-</td></tr>' ;
+	txt += '</tbody></table>' ;
+	txt + '<hr>' ;
+	txt += '<h2>Linux Kernel Internal Memory (MB)</h2>' ;
+	txt += '<table class="table table-sm">' ;
+        txt += '<tbody>' ;
+	txt += '<tr><td></td><td>Cached = '+toFixed(data.memstats.cached,2)+'</td><td>Active = '+toFixed(data.memstats.active,2)+'</td></tr>' ;
+	txt += '<tr><td>Buffers = '+toFixed(data.memstats.buffers,2)+'</td><td>SwapCached = '+toFixed(data.memstats.swapcached,2)+'</td><td>Inactive = '+toFixed(data.memstats.inactive,2)+'</td></tr>' ;
+	txt += '<tr><td>Dirty = '+toFixed(data.memstats.dirty,2)+'</td><td>WriteBack = '+toFixed(data.memstats.writeback,2)+'</td><td>Mapped = '+toFixed(data.memstats.mapped,2)+'</td></tr>' ;
+	txt += '<tr><td></td><td></td><td>PageTables = '+toFixed(data.memstats.pagetables,2)+'</td></tr>' ;
+	txt += '</tbody></table>' ;
+	d.innerHTML = txt ;
+}
+function do_network() {
+	d = document.getElementById("networkTable") ;
+	p = data.networks ;
+	txt  = '<h2>Networks</h2>' ;
+	txt += '<table class="table table-sm table-hover table-bordered"><thead class="thead-light">' ;	
+	txt += '<tr><th>Name</th><th>MTU</th></tr>' ;
+	txt += '</thead><tbody>' ;
+	if( p.length>0 )
+	for( i=0 ; i<p.length ; i++ ) {
+		txt += '<tr>' ;
+		txt += '<th>'+p[i].name+'</th>' ;
+		txt += '<td>'+p[i].mtu+'</dh>' ;
+		txt += '</tr>' ;
+	}	
+	txt += '</tbody></table>' ;
+	d.innerHTML = txt ;
+}
+function do_fs() {
+	d = document.getElementById("fsTable") ;
+	p = data.filesystems ;
+	
+	p.sort( function(a,b) { 
+		if( b.hasOwnProperty('size') ) {
+			if( a.hasOwnProperty('size') ) { return b.size - a.size ; }
+			else { return b.size ; }
+		} else {
+			if( a.hasOwnProperty('size') ) { return 0 - a.size ; }
+			else { return 0 ; }
+		}
+		
+	} ) ;
+	
+	txt  = '<h2>Files Systems</h2>' ;
+	txt += '<table class="table table-sm table-hover table-bordered"><thead class="thead-light">' ;	
+	txt += '<tr><th>Filesystems</th><th>SizeMB</th><th>FreeMB</th><th>Use%</th><th>Type</th><th>MountPoint</th></tr>' ;
+	txt += '</thead><tbody>' ;
+	if( p.length>0 )
+	for( i=0 ; i<p.length ; i++ ) {
+		txt += '<tr>' ;
+		if( p[i].filesystem.length>26 ) {
+			txt += '<th>'+p[i].filesystem.substring(0,20)+'...'+p[i].filesystem.substring(p[i].filesystem.length-3, p[i].filesystem.length)+'</th>' ;
+		} else {
+			txt += '<th>'+p[i].filesystem+'</th>' ;
+		}
+		if( p[i].hasOwnProperty('size') ) {
+			txt += '<td>'+toFixed(p[i].size,2)+'</td>' ;
+			txt += '<td>'+toFixed(p[i].free,2)+'</td>' ;
+			pct = 100*p[i].used/p[i].size ;
+			txt += '<td style="background-color: gray;"><span style="color: '+getGreenToRed(100-pct)+';">'+toFixed(pct,2)+'</span></td>' ;
+		} else {
+			txt += '<td>-</td><td>-</td><td>-</td>' ;
+		}
+		txt += '<td>'+p[i].type+'</td>' ;
+		txt += '<td>'+p[i].mount+'</td>' ;
+		txt += '</tr>' ;
+	}
+	txt += '</tbody></table>' ;
+	d.innerHTML = txt ;
+}
+function do_process() {
+	d = document.getElementById("processTable") ;
+	p = data.processes ;
+	
+	document.getElementById("info_runningprocs").innerHTML = data.runningprocs ;
+	
+	if( document.getElementById("cpuSort").checked )  {
+		p.sort( function(a,b) { return b.pcpu - a.pcpu; } ) ;
+	} else {
+		p.sort( function(a,b) { return b.pmem - a.pmem; } ) ;
+	}
+	txt = '<table class="table table-sm table-hover table-bordered"><thead class="thead-light">' ;
+	txt += '<tr><th>PID</th><th>%CPU</th><th>%Mem</th><th>User</th><th>State</th><th>Start time</th><th>Command</th></tr>' ;
+	txt += '</thead><tbody>' ;
+	if( p.length>0 )
+	for( i=0 ; i<20 ; i++ ) {
+		txt += '<tr>' ;
+		txt += '<th>'+p[i].pid+'</th>' ;
+		txt += '<td>'+toFixed(p[i].pcpu,2)+'</td>' ;
+		txt += '<td>'+toFixed(p[i].pmem,2)+'</td>' ;
+		txt += '<td>'+p[i].user+'</td>' ;
+		txt += '<td>'+p[i].state+'</td>' ;
+		txt += '<td>'+p[i].start_time+'</td>' ;
+		if( p[i].args.lenght>0 ) { proc = p[i].args ; } 
+		else { if( p[i].hasOwnProperty("comm") ) { proc = p[i].comm ; } else { proc = "" ; } }
+		txt += '<td>'+proc+'</td>' ;
+		txt += '</tr>' ;
+	}
+	txt += '</tbody></table>' ;
+	d.innerHTML = txt ;
+}
+  </script>
+  <body onLoad="init();">
+
+
+<div class="container">
+  <h1>Server informations</h1>
+  <br/>
+ 
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">Informations</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="cpu-tab" data-toggle="tab" href="#cpu" role="tab" aria-controls="cpu" aria-selected="false">CPU</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="memory-tab" data-toggle="tab" href="#memory" role="tab" aria-controls="memory" aria-selected="false">Memory</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="network-tab" data-toggle="tab" href="#network" role="tab" aria-controls="network" aria-selected="false">Networks</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="disk-tab" data-toggle="tab" href="#disk" role="tab" aria-controls="disk" aria-selected="false">Disks</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="fs-tab" data-toggle="tab" href="#fs" role="tab" aria-controls="fs" aria-selected="false">File systems</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="process-tab" data-toggle="tab" href="#process" role="tab" aria-controls="process" aria-selected="false">Processes</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="config-tab" data-toggle="tab" href="#config" role="tab" aria-controls="config" aria-selected="false">Config</a>
+  </li>
+  <form class="form-inline">
+ &nbsp; &nbsp; &nbsp;
+<button type="button" id="btnStart" class="btn btn-outline-success btn-sm" disabled onClick="Start();return false;" style="display: none;">Start</button>
+<button type="button" id="btnStop" class="btn btn-outline-danger btn-sm" onClick="Stop();return false;">Stop</button>
+<button id="spinner" class="btn btn-outline-danger btn-sm" type="button" disabled style="display: none;">
+  <span class="spinner-border text-danger spinner-border-sm" role="status" aria-hidden="true"></span>
+  <span class="sr-only">Loading...</span>
+</button>
+  </form>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+
+  <!-- Informations Tab -->
+  <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+    <br/>
+    <table class="table table-sm table-dark">
+      <thead>
+        <tr><td><h1>CPU</h1></td><td><h1>Mem</h1></td></tr>
+      </thead>
+      <tbody>
+        <tr><td><span id="info_cpuusage"></span></td><td><span id="info_memusage"></span></td></td>
+      </tbody>
+    </table>
+    <h2>Informations</h2>
+    <table class="table table-sm table-hover table-bordered">
+      <thead class="thead-light">
+      <tr>
+        <th scope="col">Property</th>
+        <th scope="col">Value</th>
+      </tr>
+      </thead>
+      <tbody>
+	<tr><th scope="row">Hostname</th><td><span id="info_hostname"></span></td></tr>
+	<tr><th scope="row">Architecture</th><td><span id="info_archi"></span></td></tr>
+	<tr><th scope="row">OS</th><td><span id="info_os"></span></td></tr>
+	<tr><th scope="row">OS Version</th><td><span id="info_osversion"></span></td></tr>
+	<tr><th scope="row">Nb CPUs</th><td><span id="info_cpucpus"></span></td></tr>
+	<tr><th scope="row">CPU Vendor</th><td><span id="info_cpuvendorid"></span></td></tr>
+	<tr><th scope="row">CPU Model</th><td><span id="info_cpumodel"></span></td></tr>
+      </tbody>
+    </table>
+  </div> <!-- End of Informations Tab -->
+  
+  <!-- CPU Tab -->
+  <div class="tab-pane fade" id="cpu" role="tabpanel" aria-labelledby="cpu-tab">
+  <br/>
+    <div id="cpuTable"></div>
+  </div> <!-- End of CPU Tab -->
+  
+  <!-- Mem Tab -->
+  <div class="tab-pane fade" id="memory" role="tabpanel" aria-labelledby="memory-tab">
+  <br/>
+    <div id="memTable"></div>
+  </div> <!-- End of Tab -->
+  
+  <!-- Network Tab -->
+  <div class="tab-pane fade" id="network" role="tabpanel" aria-labelledby="network-tab">
+  <br/>
+    <div id="networkTable"></div>
+  </div> <!-- End of Network Tab -->
+  
+  <!-- Disk Tab -->
+  <div class="tab-pane fade" id="disk" role="tabpanel" aria-labelledby="disk-tab">
+  </div> <!-- End of Disk Tab -->
+  
+  <!-- File system Tab -->
+  <div class="tab-pane fade" id="fs" role="tabpanel" aria-labelledby="fs-tab">
+    <div id="fsTable"></div>
+  </div> <!-- End of File system Tab -->
+  
+  <!-- Processes Tab -->
+  <div class="tab-pane fade" id="process" role="tabpanel" aria-labelledby="process-tab">
+  <br/>
+    <h2>Processes</h2>
+    Total processes num: <b><span id="info_runningprocs"></span></b> &nbsp; &nbsp; Sort: 
+    <div class="custom-control custom-radio custom-control-inline">
+      <input type="radio" id="cpuSort" name="customRadioInline1" class="custom-control-input" onChange="do_process();return false;">
+      <label class="custom-control-label" for="cpuSort"><b>CPU</b></label>
+    </div>
+    <div class="custom-control custom-radio custom-control-inline">
+      <input type="radio" id="memSort" name="customRadioInline1" class="custom-control-input" checked onChange="do_process();return false;">
+      <label class="custom-control-label" for="memSort"><b>MEM</b></label>
+    </div>
+    <div id="processTable"></div>
+  </div> <!-- End of Processes Tab -->
+
+  <!-- Docker Tab -->
+  <div class="tab-pane fade" id="docker" role="tabpanel" aria-labelledby="docker-tab">
+  </div> <!-- End of Docker Tab -->
+
+  <!-- Configuration Tab -->
+  <div class="tab-pane fade" id="config" role="tabpanel" aria-labelledby="config-tab">
+  <br/>
+    <h2>Configuration</h2>
+    <form>
+      <div class="form-group">
+        <label for="delay">Refresh delay</label>
+        <input type="number" class="form-control" id="delay" min="10" placeholder="Enter a refresh delay (number of seconds)" onChange="setDelay(this.value);return false;">
+      </div>
+    </form>
+    <div id="configTable"></div>
+  </div> <!-- End of Configuration Tab -->
+  
+</div> <!-- End of myTabContent -->
+
+
+
+<footer class="footer mt-auto py-3">
+  <div class="container">
+    <span class="text-muted">Generated at <span id="gen_date"><i>in progress</i></span></span>
+  </div>
+</footer>
+
+</div> <!--End of container-->
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="jquery-3.5.1.slim.min.js"></script>
+    <script src="popper.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+  </body>
+</html>
