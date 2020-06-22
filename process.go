@@ -17,17 +17,17 @@ type Process struct {
     Exe            string                   `json:"exe"`
     Foreground     bool                     `json:"foreground"`
     IsRunning      bool                     `json:"isrunning"`
-    MemoryInfo*    process.MemoryInfoStat  `json:memoryinfo`
+    MemoryInfo*    process.MemoryInfoStat   `json:memoryinfo`
     MemoryPercent  float32                  `json:"memorypercent"`
     Name           string                   `json:"name"`
     Nice           int32                    `json:"nice"`
     NumFDs         int32                    `json:"numfds"`
     NumThreads     int32                    `json:"numthreads"`
-    Pid            int32                    `json:"ppid"`
+    Pid            int32                    `json:"pid"`
     Ppid           int32                    `json:"ppid"`
     Status         string                   `json:"status"`
     Terminal       string                   `json:"terminal"`
-    Times*         cpu.TimesStat           `json:"times"`
+    Times*         cpu.TimesStat            `json:"times"`
     Username       string                   `json:"username"`
 }
 

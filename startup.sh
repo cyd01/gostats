@@ -7,10 +7,6 @@ cd ${DIRNAME}/..
 export DIRROOT=$(pwd)
 cd - > /dev/null
 
-if [ -f ${DIRROOT}/../bin/gostats ] ; then
-	export PATH=$PATH:.:${DIRROOT}/../bin
-fi
-
 which gostats > /dev/null 2>&1 || {
 	echo "Unable to find gostats !" >&2
 	exit 1
@@ -51,6 +47,7 @@ if [ -d /data/dev ] ; then export HOST_DEV=/data/dev ; fi
 trap clean 1 2 3 15
 
 echo "Start gostats..."
+
 gostats ${PORT} ${DIR} &
 wpid=$!
 
