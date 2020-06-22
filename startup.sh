@@ -36,6 +36,18 @@ function clean() {
 	if [ $wpid -gt 0 ] ; then echo "Killing gostats..." ; kill $wpid ; fi
 }
 
+if [ -d /data/proc ] ; then export HOST_PROC=/data/proc ; fi
+
+if [ -d /data/sys ] ; then export HOST_SYS=/data/sys ; fi
+
+if [ -d /data/etc ] ; then export HOST_ETC=/data/etc ; fi
+
+if [ -d /data/var ] ; then export HOST_VAR=/data/var ; fi
+
+if [ -d /data/run ] ; then export HOST_RUN=/data/run ; fi
+
+if [ -d /data/dev ] ; then export HOST_DEV=/data/dev ; fi
+
 trap clean 1 2 3 15
 
 echo "Start gostats..."
