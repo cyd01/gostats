@@ -6,11 +6,19 @@
 
 ![](gostats.png)
 
+It can be used to monitor 
+- cpu
+- memory
+- networks
+- disks
+
 The tool is based on famous [gopsutil front shirou](https://github.com/shirou/gopsutil).
 
 ## Building...
 
 ### gostats binary
+
+**gostats** developped in **Go**. In order to compile it after cloning the repository, just run
 
 ```
 $ go get
@@ -19,14 +27,17 @@ $ CGO_ENABLED=0 go build -a -installsuffix cgo
 
 ### Docker image
 
+**gpstats** is available in a **[Docker image](https://hub.docker.com/repository/docker/cyd01/gostats)**. To build the image:
+
 ```
 $ docker build . -t cyd01/gostats -f Dockerfile
 ```
 
-
 ## Running...
 
-### The old way
+### The "old" way
+
+Simply run the process:
 
 ```
 $ PORT=80 ./startup.sh
