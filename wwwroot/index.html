@@ -5,8 +5,28 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
-    <!--<link rel="stylesheet" type="text/css" title="Original" href="bootstrap.min.css">-->
     <link rel="stylesheet" type="text/css" title="Darkly" href="css/Darkly/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Cerulean" href="css/Cerulean/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Cosmo" href="css/Cosmo/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Cyborg" href="css/Cyborg/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Flatly" href="css/Flatly/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Journal" href="css/Journal/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Litera" href="css/Litera/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Lumen" href="css/Lumen/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Lux" href="css/Lux/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Materia" href="css/Materia/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Minty" href="css/Minty/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Pulse" href="css/Pulse/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Sandstone" href="css/Sandstone/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Simplex" href="css/Simplex/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Sketchy" href="css/Sketchy/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Slate" href="css/Slate/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Solar" href="css/Solar/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Spacelab" href="css/Spacelab/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Superhero" href="css/Superhero/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="United" href="css/United/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Yeti" href="css/Yeti/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" title="Original" href="bootstrap.min.css">
     <title>Server info</title>
   </head>
   <script type="text/javascript">
@@ -195,8 +215,72 @@ function refresh_network() {
 	fetch("/net")
 	.then((resp) => resp.json())
 	.then(function(res) {
-		process = res.processes ;
-		d = document.getElementById("processTable") ;
+		net = res.net ;
+		d = document.getElementById("networkTable") ;
+		
+		txt  = '<h2>Networks</h2>' ;
+		txt += '<table class="table table-sm table-hover table-bordered"><thead class="thead-light">' ;	
+		txt += '<tr><th>Name</th><th>MTU</th><th>Addr</th><th>PacketSent</th><th>PacketRecv</th><th>ErrIN</th><th>ErrOUT</th><th>DropIN</th><th>DropOUT</th></tr>' ;
+		txt += '</thead><tbody>' ;
+		if( net.interfaces.length>0 )
+		for( i=0 ; i<net.interfaces.length ; i++ ) {
+			txt += '<tr>' ;
+			txt += '<th>'+net.interfaces[i].name+'</th>' ;
+			txt += '<td>'+net.interfaces[i].mtu+'</dh>' ;
+			if( net.interfaces[i].addrs.length>0 ) {
+				txt += '<td>'+net.interfaces[i].addrs[0].addr+'</td>' ;
+			} else {
+				txt += '<td>-</td>' ;
+			}
+			test = false ;
+			if( net.iocountersperinterface.length>0 ) 
+			for( j=0 ; j<net.iocountersperinterface.length ; j++ ) {
+				if( net.interfaces[i].name == net.iocountersperinterface[j].name ) {
+					test = true ;
+					txt += '<td>'+net.iocountersperinterface[j].packetsSent+'</td><td>'+net.iocountersperinterface[j].packetsRecv+'</td>' ;
+					txt += '<td>'+net.iocountersperinterface[j].errin+'</td><td>'+net.iocountersperinterface[j].errout+'</td>' ;
+					txt += '<td>'+net.iocountersperinterface[j].dropin+'</td><td>'+net.iocountersperinterface[j].dropout+'</td>' ;
+				}
+			}
+			if( !test ) {
+				txt += '<td>-</td><td>-</td>' ;
+			}
+			txt += '</tr>' ;
+		}	
+		txt += '</tbody></table>' ;
+		
+		d.innerHTML = txt ;
+	})
+	.catch(function(error) {
+		console.log(error);
+	})
+	; 
+}
+function refresh_disk() {
+	fetch("/disk")
+	.then((resp) => resp.json())
+	.then(function(res) {
+		disk = res.disks ;
+		d = document.getElementById("diskTable") ;
+		
+		txt  = '<h2>Disks</h2>' ;
+		txt += '<table class="table table-sm table-hover table-bordered"><thead class="thead-light">' ;	
+		txt += '<tr><th>Device</th><th>Type</th><th>SizeMB</th><th>FreeMB</th><th>Use%</th><th>MountPoint</th></tr>' ;
+
+		txt += '</thead><tbody>' ;
+		if( disk.length>0 )
+		for( i=0 ; i<disk.length ; i++ ) {
+			txt += '<tr>' ;
+			txt += '<td>'+disk[i].device+'</td>' ;
+			txt += '<td>'+disk[i].fstype+'</td>' ;
+			txt += '<td>'+toFixed(disk[i].usage.total/1024/1024,0)+'</td>' ;
+			txt += '<td>'+toFixed(disk[i].usage.free/1024/1024,0)+'</td>' ;
+			per = 100*disk[i].usage.used/disk[i].usage.total ;
+			txt += '<td style="color: '+getGreenToRed(100-per)+';">'+toFixed(per,2)+'</td>' ;
+			txt += '<td>'+disk[i].mountpoint+'</td>' ;
+			txt += '</tr>' ;
+		}
+		txt += '</tbody></table>' ;
 		d.innerHTML = txt ;
 	})
 	.catch(function(error) {
@@ -212,6 +296,7 @@ function refresh() {
 	refresh_cpu() ;
 	refresh_mem() ;
 	refresh_network() ;
+	refresh_disk() ;
 	refresh_process() ;
 	
 	document.getElementById("gen_date").innerHTML = Date().toLocaleString() ;
@@ -252,64 +337,18 @@ function getGreenToRed(percent){
 	g = percent>50 ? 255 : Math.floor((percent*2)*255/100);
 	return 'rgb('+r+','+g+',0)';
 }
-function do_network() {
-	d = document.getElementById("networkTable") ;
-	p = data.networks ;
-	txt  = '<h2>Networks</h2>' ;
-	txt += '<table class="table table-sm table-hover table-bordered"><thead class="thead-light">' ;	
-	txt += '<tr><th>Name</th><th>MTU</th></tr>' ;
-	txt += '</thead><tbody>' ;
-	if( p.length>0 )
-	for( i=0 ; i<p.length ; i++ ) {
-		txt += '<tr>' ;
-		txt += '<th>'+p[i].name+'</th>' ;
-		txt += '<td>'+p[i].mtu+'</dh>' ;
-		txt += '</tr>' ;
-	}	
-	txt += '</tbody></table>' ;
-	d.innerHTML = txt ;
-}
-function do_fs() {
-	d = document.getElementById("fsTable") ;
-	p = data.filesystems ;
-	
-	p.sort( function(a,b) { 
-		if( b.hasOwnProperty('size') ) {
-			if( a.hasOwnProperty('size') ) { return b.size - a.size ; }
-			else { return b.size ; }
-		} else {
-			if( a.hasOwnProperty('size') ) { return 0 - a.size ; }
-			else { return 0 ; }
+function switchStyle(style) {
+	var i, link_tag ;
+	for (i = 0, link_tag = document.getElementsByTagName("link") ;
+	i < link_tag.length ; i++ ) {
+		if ((link_tag[i].rel.indexOf( "stylesheet" ) != -1) && link_tag[i].title) {
+			link_tag[i].disabled = true ;
+			if (link_tag[i].title == style) {
+				link_tag[i].disabled = false ;
+			}
 		}
-		
-	} ) ;
-	
-	txt  = '<h2>Files Systems</h2>' ;
-	txt += '<table class="table table-sm table-hover table-bordered"><thead class="thead-light">' ;	
-	txt += '<tr><th>Filesystems</th><th>SizeMB</th><th>FreeMB</th><th>Use%</th><th>Type</th><th>MountPoint</th></tr>' ;
-	txt += '</thead><tbody>' ;
-	if( p.length>0 )
-	for( i=0 ; i<p.length ; i++ ) {
-		txt += '<tr>' ;
-		if( p[i].filesystem.length>26 ) {
-			txt += '<th>'+p[i].filesystem.substring(0,20)+'...'+p[i].filesystem.substring(p[i].filesystem.length-3, p[i].filesystem.length)+'</th>' ;
-		} else {
-			txt += '<th>'+p[i].filesystem+'</th>' ;
-		}
-		if( p[i].hasOwnProperty('size') ) {
-			txt += '<td>'+toFixed(p[i].size,2)+'</td>' ;
-			txt += '<td>'+toFixed(p[i].free,2)+'</td>' ;
-			pct = 100*p[i].used/p[i].size ;
-			txt += '<td style="background-color: gray;"><span style="color: '+getGreenToRed(100-pct)+';">'+toFixed(pct,2)+'</span></td>' ;
-		} else {
-			txt += '<td>-</td><td>-</td><td>-</td>' ;
-		}
-		txt += '<td>'+p[i].type+'</td>' ;
-		txt += '<td>'+p[i].mount+'</td>' ;
-		txt += '</tr>' ;
 	}
-	txt += '</tbody></table>' ;
-	d.innerHTML = txt ;
+	link_tag = null ;
 }
 </script>
   <body onLoad="init();">
@@ -321,7 +360,7 @@ function do_fs() {
  
 <ul class="nav nav-tabs" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
-    <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">Informations</a>
+    <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">Info</a>
   </li>
   <li class="nav-item" role="presentation">
     <a class="nav-link" id="cpu-tab" data-toggle="tab" href="#cpu" role="tab" aria-controls="cpu" aria-selected="false">CPU</a>
@@ -330,16 +369,16 @@ function do_fs() {
     <a class="nav-link" id="memory-tab" data-toggle="tab" href="#memory" role="tab" aria-controls="memory" aria-selected="false">Memory</a>
   </li>
   <li class="nav-item" role="presentation">
-    <a class="nav-link" id="network-tab" data-toggle="tab" href="#network" role="tab" aria-controls="network" aria-selected="false">Networks</a>
+    <a class="nav-link" id="network-tab" data-toggle="tab" href="#network" role="tab" aria-controls="network" aria-selected="false">Network</a>
   </li>
   <li class="nav-item" role="presentation">
-    <a class="nav-link" id="disk-tab" data-toggle="tab" href="#disk" role="tab" aria-controls="disk" aria-selected="false">Disks</a>
+    <a class="nav-link" id="disk-tab" data-toggle="tab" href="#disk" role="tab" aria-controls="disk" aria-selected="false">Disk</a>
   </li>
   <li class="nav-item" role="presentation">
-    <a class="nav-link" id="fs-tab" data-toggle="tab" href="#fs" role="tab" aria-controls="fs" aria-selected="false">File systems</a>
+    <a class="nav-link" id="process-tab" data-toggle="tab" href="#process" role="tab" aria-controls="process" aria-selected="false">Process</a>
   </li>
   <li class="nav-item" role="presentation">
-    <a class="nav-link" id="process-tab" data-toggle="tab" href="#process" role="tab" aria-controls="process" aria-selected="false">Processes</a>
+    <a class="nav-link" id="docker-tab" data-toggle="tab" href="#docker" role="tab" aria-controls="docker" aria-selected="false">Docker</a>
   </li>
   <li class="nav-item" role="presentation">
     <a class="nav-link" id="config-tab" data-toggle="tab" href="#config" role="tab" aria-controls="config" aria-selected="false">Config</a>
@@ -409,14 +448,9 @@ function do_fs() {
   <!-- Disk Tab -->
   <div class="tab-pane fade" id="disk" role="tabpanel" aria-labelledby="disk-tab">
     <br/>
+    <div id="diskTable"></div>
   </div> <!-- End of Disk Tab -->
-  
-  <!-- File system Tab -->
-  <div class="tab-pane fade" id="fs" role="tabpanel" aria-labelledby="fs-tab">
-    <br/>
-    <div id="fsTable"></div>
-  </div> <!-- End of File system Tab -->
-  
+
   <!-- Processes Tab -->
   <div class="tab-pane fade" id="process" role="tabpanel" aria-labelledby="process-tab">
     <br/>
@@ -436,7 +470,11 @@ function do_fs() {
   <!-- Docker Tab -->
   <div class="tab-pane fade" id="docker" role="tabpanel" aria-labelledby="docker-tab">
     <br/>
+    <div id="dockerTable">Work in progress</div>
   </div> <!-- End of Docker Tab -->
+
+
+
 
   <!-- Configuration Tab -->
   <div class="tab-pane fade" id="config" role="tabpanel" aria-labelledby="config-tab">
@@ -446,6 +484,35 @@ function do_fs() {
       <div class="form-group">
         <label for="delay">Refresh delay</label>
         <input type="number" class="form-control" id="delay" min="10" placeholder="Enter a refresh delay (number of seconds)" onChange="setDelay(this.value);return false;">
+      </div>
+    </form>
+    <form>
+      <div class="form-group">
+        <label for="theme">Theme</label>
+          <select class="form-control" id="theme" onchange="switchStyle(this.value);return false;">
+	    <option value="Original">Original</option>
+            <option value="Cerulean">Cerulean</option>
+            <option value="Cosmo">Cosmo</option>
+            <option value="Cyborg">Cyborg</option>
+            <option value="Darkly" selected>Darkly</option>
+            <option value="Flatly">Flatly</option>
+            <option value="Journal">Journal</option>
+            <option value="Litera">Litera</option>
+            <option value="Lumen">Lumen</option>
+            <option value="Lux">Lux</option>
+            <option value="Materia">Materia</option>
+            <option value="Minty">Minty</option>
+            <option value="Pulse">Pulse</option>
+            <option value="Sandstone">Sandstone</option>
+            <option value="Simplex">Simplex</option>
+            <option value="Sketchy">Sketchy</option>
+            <option value="Slate">Slate</option>
+            <option value="Solar">Solar</option>
+            <option value="Spacelab">Spacelab</option>
+            <option value="Superhero">Superhero</option>
+            <option value="United">United</option>
+            <option value="Yeti">Yeti</option>
+          </select>
       </div>
     </form>
     <div id="configTable"></div>

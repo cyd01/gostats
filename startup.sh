@@ -7,6 +7,7 @@ cd ${DIRNAME}/..
 export DIRROOT=$(pwd)
 cd - > /dev/null
 
+export PATH=.:${PATH}
 which gostats > /dev/null 2>&1 || {
 	echo "Unable to find gostats !" >&2
 	exit 1
