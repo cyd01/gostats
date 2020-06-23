@@ -17,6 +17,8 @@ and very soon, Docker containers.
 
 The tool is based on famous [gopsutil front shirou](https://github.com/shirou/gopsutil).
 
+It is available on [Github](https://github.com/cyd01/gostats).
+
 ## Building...
 
 ### gostats binary
