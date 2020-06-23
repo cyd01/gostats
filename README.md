@@ -11,6 +11,9 @@ It can be used to monitor
 - memory
 - networks
 - disks
+- process
+
+and very soon, Docker containers.
 
 The tool is based on famous [gopsutil front shirou](https://github.com/shirou/gopsutil).
 
