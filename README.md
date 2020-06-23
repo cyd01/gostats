@@ -2,7 +2,7 @@
 
 ## Informations
 
-**gostats** is a real-time Linux monitoring.
+**gostats** is a real-time Linux monitoring tool
 
 ![](gostats.png)
 
