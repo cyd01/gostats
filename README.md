@@ -2,7 +2,11 @@
 
 ## Informations
 
-This tool is based on famous [gopsutil front shirou](https://github.com/shirou/gopsutil).
+**gostats** is a real-time Linux monitoring.
+
+![](gostats.png)
+
+The tool is based on famous [gopsutil front shirou](https://github.com/shirou/gopsutil).
 
 ## Building...
 
@@ -32,6 +36,8 @@ Start gostats...
 
 ### The easy way
 
+The easy is the the Docker way:
+
 ```
 $ docker run --rm -t --privileged -p 80:80 \
 	-e PORT=80 \
@@ -42,4 +48,13 @@ $ docker run --rm -t --privileged -p 80:80 \
 	-v /run:/data/run:ro \
 	-v /dev:/data/dev:ro \
 	cyd01/gostats
+```
+
+### The easiest
+
+Much more easy, a compose file:
+
+```
+$ docker-compose up -d
+Creating gostats_gostats_1 ... done
 ```

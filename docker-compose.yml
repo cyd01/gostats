@@ -1,0 +1,16 @@
+version: "3.2"
+services:
+  gostats:
+    image: cyd01/gostats:latest
+    ports:
+      - 80:80
+    volumes:
+      - /proc:/data/proc:ro
+      - /sys:/data/sys:ro
+      - /etc:/data/etc:ro
+      - /var:/data/var:ro
+      - /run:/data/run:ro
+      - /dev:/data/dev:ro
+    environment:
+      - PORT=80
+    privileged: true
