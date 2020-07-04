@@ -33,13 +33,14 @@ func main() {
 	http.HandleFunc("/disk", SrvDisk )
 	http.HandleFunc("/docker", SrvDocker )
 	http.HandleFunc("/host", SrvHost )
+	http.HandleFunc("/info", SrvInfo )
 	http.HandleFunc("/load", SrvLoad )
 	http.HandleFunc("/mem", SrvMem )
 	http.HandleFunc("/net", SrvNet )
 	http.HandleFunc("/process", SrvProcess )
 	http.HandleFunc("/usage", func(w http.ResponseWriter, r *http.Request) {
 	    w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-            fmt.Fprintf(w, "[\"/cpu\",\"/disk\",\"/docker\",\"/host\",\"/load\",\"/mem\",\"/net\",\"/process\",\"/usage\"]")
+            fmt.Fprintf(w, "[\"/cpu\",\"/disk\",\"/docker\",\"/host\",\"info\",\"/load\",\"/mem\",\"/net\",\"/process\",\"/usage\"]")
 	} )
 	
 	log.Println("Starting webserver on port", port, "to directory", dir)
@@ -50,6 +51,7 @@ func main() {
 	} else if( flag.Arg(0)=="disk" ) { fmt.Println( string(CalcDisk()) )
 	} else if( flag.Arg(0)=="docker" ) { fmt.Println( string(CalcDocker()) )
 	} else if( flag.Arg(0)=="host" ) { fmt.Println( string(CalcHost()) )
+	} else if( flag.Arg(0)=="info" ) { fmt.Println( string(CalcInfo()) )
 	} else if( flag.Arg(0)=="load" ) { fmt.Println( string(CalcLoad()) )
 	} else if( flag.Arg(0)=="mem" ) { fmt.Println( string(CalcMem()) )
 	} else if( flag.Arg(0)=="net" ) { fmt.Println( string(CalcNet()) )

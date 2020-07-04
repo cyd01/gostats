@@ -191,7 +191,7 @@ function refresh_process() {
 		txt += '<tr><th>PID</th><th>%CPU</th><th>%Mem</th><th>User</th><th>State</th><th>Start time</th><th>Command</th></tr>' ;
 		txt += '</thead><tbody>' ;
 		if( process.length>0 )
-		for( i=0 ; i<20 ; i++ ) {
+		for( i=0 ; i<process.length ; i++ ) {
 			txt += '<tr>' ;
 			txt += '<th>'+process[i].pid+'</th>' ;
 			txt += '<td>'+toFixed(process[i].cpupercent,2)+'</td>' ;
@@ -201,6 +201,7 @@ function refresh_process() {
 			txt += '<td>'+process[i].createtime+'</td>' ;
 			txt += '<td>'+process[i].command+'</td>' ;
 			txt += '</tr>' ;
+			if( i>=20) { break ; }
 		}
 		txt += '</tbody></table>' ;
 		
