@@ -31,17 +31,22 @@ func gethostfile() string {
 	return hostfile
 }
 
+func gethostname() string {
+   hostfile := gethostfile()
+    if( len(hostfile)>0 ) {
+        return readfile(hostfile)
+    } else {
+	i,_ := host.Info()
+	return i.Hostname
+    }
+}
+
 func CalcHost() ([]byte) {
     p := Host{}
     
     p.Info,_ = host.Info()
-    hostfile := gethostfile()
+    p.Hostname = gethostname()
 
-    if( len(hostfile)>0 ) {
-        p.Hostname = readfile(hostfile)
-    } else {
-	p.Hostname = p.Info.Hostname
-    }
     p.Temperature,_ = host.SensorsTemperatures()
     p.Users,_ = host.Users()
     

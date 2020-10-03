@@ -55,7 +55,7 @@ Start gostats...
 The easy is the the Docker way:
 
 ```
-$ docker run --rm -t --privileged -p 80:80 \
+$ docker run --rm -d -t --privileged -p 80:80 \
 	-e PORT=80 \
 	-v /proc:/data/proc:ro \
 	-v /sys:/data/sys:ro \
