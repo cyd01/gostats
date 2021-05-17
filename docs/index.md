@@ -32,7 +32,7 @@ $ CGO_ENABLED=0 go build -a -installsuffix cgo
 
 ### Docker image
 
-**gpstats** is available in a **[Docker image](https://hub.docker.com/repository/docker/cyd01/gostats)**. To build the image:
+**gostats** is available in a **[Docker image](https://hub.docker.com/repository/docker/cyd01/gostats)**. To build the image:
 
 ```
 $ docker build . -t cyd01/gostats -f Dockerfile
@@ -74,3 +74,7 @@ Much more easy, a compose file:
 $ docker-compose up -d
 Creating gostats_gostats_1 ... done
 ```
+
+### Demonstration
+
+Here is an online [demonstration website](https://gostats.piratemind.com).
