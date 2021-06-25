@@ -16,3 +16,5 @@
 
 gostats
 .*
+go.mod
+go.sum

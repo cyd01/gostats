@@ -25,6 +25,7 @@ build: compile
 compile: $(EXE)
 
 $(EXE): *.go
+	go mod init gostats
 	go get
 	CGO_ENABLED=0 go build -a -installsuffix cgo
 
@@ -37,17 +38,16 @@ image:
 	docker build . -t $(IMAGE) -f Dockerfile
 
 .PHONY: push
-push:
+push: image
 	docker push $(IMAGE)
 
 .PHONY: run
-run:
+run: 
 	PORT=8585 ./startup.sh
 	
 .PHONY: docker
 docker:
-	docker run --rm -d --privileged --name $(EXE) -p 8585:80 \
-	-e PORT=80 \
+	docker run --rm -d --privileged --name $(EXE) -p $${PORT:-8585}:80 \
 	-v /proc:/data/proc:ro \
 	-v /sys:/data/sys:ro \
 	-v /etc:/data/etc:ro \
@@ -58,12 +58,12 @@ docker:
 
 .PHONY: stop
 stop: 
-	docker kill $(EXE)
+	@docker kill $(EXE) 2> /dev/null || test 1
 
 .PHONY: clean
 clean:
-	rm $(EXE)
-	docker kill $(EXE)
+	@test ! -f $(EXE) || rm $(EXE)
+	@docker container inspect $(EXE) > /dev/null 2>&1 && docker kill $(EXE) || test 1
 	docker container prune -f
 	docker image prune -f
 	
