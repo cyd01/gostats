@@ -48,7 +48,7 @@ function setDelay(d) {
 	delay = d ;
 }
 function refresh_host() {
-	fetch("/host")
+	fetch("host")
 	.then((resp) => resp.json())
 	.then(function(res) {
 		host = res.host ;
@@ -63,7 +63,7 @@ function refresh_host() {
 	; 
 }
 function refresh_cpu() {
-	fetch("/cpu")
+	fetch("cpu")
 	.then((resp) => resp.json())
 	.then(function(res) {
 		cpu = res.cpu ;
@@ -130,7 +130,7 @@ function refresh_cpu() {
 	; 
 }
 function refresh_mem() {
-	fetch("/mem")
+	fetch("mem")
 	.then((resp) => resp.json())
 	.then(function(res) {
 		mem = res.mem ;
@@ -174,7 +174,7 @@ function refresh_mem() {
 	; 
 }
 function refresh_process() {
-	fetch("/process")
+	fetch("process")
 	.then((resp) => resp.json())
 	.then(function(res) {
 		process = res.processes ;
@@ -213,7 +213,7 @@ function refresh_process() {
 	; 
 }
 function refresh_network() {
-	fetch("/net")
+	fetch("net")
 	.then((resp) => resp.json())
 	.then(function(res) {
 		net = res.net ;
@@ -258,7 +258,7 @@ function refresh_network() {
 	; 
 }
 function refresh_disk() {
-	fetch("/disk")
+	fetch("disk")
 	.then((resp) => resp.json())
 	.then(function(res) {
 		disk = res.disks ;

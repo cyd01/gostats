@@ -75,6 +75,24 @@ $ docker-compose up -d
 Creating gostats_gostats_1 ... done
 ```
 
+### Behind a reverse proxy
+
+Add `GOSTATS_BASE` environment variable to run `gostats` behind a reverse proxy.
+
+```
+$ docker run --rm -t --privileged -p 80:80 \
+	-e GOSTATS_BASE=/gostats \ 
+	-e PORT=80 \
+	-v /proc:/data/proc:ro \
+	-v /sys:/data/sys:ro \
+	-v /etc:/data/etc:ro \
+	-v /var:/data/var:ro \
+	-v /run:/data/run:ro \
+	-v /dev:/data/dev:ro \
+	cyd01/gostats
+```
+
+
 ### Demonstration
 
 Here is an online [demonstration website](https://gostats.piratemind.com).

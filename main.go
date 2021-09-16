@@ -14,7 +14,7 @@ func main() {
     
     if( flag.NArg()>=2 ) {
 
-        port,err := strconv.Atoi( flag.Arg(0) )
+    port,err := strconv.Atoi( flag.Arg(0) )
 	if( err!=nil ) {
 	    fmt.Println( flag.Arg(0),"is not a number" )
 	    os.Exit(1)
@@ -26,24 +26,34 @@ func main() {
 	    os.Exit(2)
 	}
 
-        http.Handle("/", http.FileServer(http.Dir(dir)))
-    	http.HandleFunc("/favicon.ico", FavSrvHandler)
-
-        http.HandleFunc("/cpu", SrvCpu )
-	http.HandleFunc("/disk", SrvDisk )
-	http.HandleFunc("/docker", SrvDocker )
-	http.HandleFunc("/host", SrvHost )
-	http.HandleFunc("/info", SrvInfo )
-	http.HandleFunc("/load", SrvLoad )
-	http.HandleFunc("/mem", SrvMem )
-	http.HandleFunc("/net", SrvNet )
-	http.HandleFunc("/process", SrvProcess )
-	http.HandleFunc("/usage", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/favicon.ico", FavSrvHandler)
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/cpu", SrvCpu )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/disk", SrvDisk )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/docker", SrvDocker )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/host", SrvHost )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/info", SrvInfo )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/load", SrvLoad )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/mem", SrvMem )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/net", SrvNet )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/process", SrvProcess )
+	http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/usage", func(w http.ResponseWriter, r *http.Request) {
 	    w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-            fmt.Fprintf(w, "[\"/cpu\",\"/disk\",\"/docker\",\"/host\",\"info\",\"/load\",\"/mem\",\"/net\",\"/process\",\"/usage\"]")
+        fmt.Fprintf(w, "[\"/cpu\",\"/disk\",\"/docker\",\"/host\",\"info\",\"/load\",\"/mem\",\"/net\",\"/process\",\"/usage\"]")
 	} )
-	
+
+	if len(os.Getenv("GOSTATS_BASE"))>0 {
+		/*
+		http.HandleFunc(os.Getenv("GOSTATS_BASE")+"/", func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, dir+"/"+r.URL.Path[1:])
+		} )
+		*/
+		http.Handle(os.Getenv("GOSTATS_BASE")+"/", http.StripPrefix(os.Getenv("GOSTATS_BASE")+"/",http.FileServer(http.Dir(dir))))
+	} else {
+		http.Handle(os.Getenv("GOSTATS_BASE")+"/", http.FileServer(http.Dir(dir)))
+	}
+
 	log.Println("Starting webserver on port", port, "to directory", dir)
+	if len(os.Getenv("GOSTATS_BASE"))>0 { log.Println("With prefix "+os.Getenv("GOSTATS_BASE")) }
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), nil))
 
     } else if( flag.NArg()>=1 ) {
